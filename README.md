@@ -17,3 +17,15 @@ GNU GENERAL PUBLIC LICENSE version 2
 ```bash
 git clone https://github.com/homermaxpower/wireconf.git && ./wireconf/wireconf.sh
 ```
+
+### Commands
+| **Command** | **Description** |
+| install | Install WireGuard |
+| uninstall | Uninstall WireGuard |
+| create | Create new WireGuard configuration |
+| delete | Select and delete WireGuard configuration |
+| list | List WireGuard configurations |
+| user | Create/Modify/Delete a user for selected configuration |
+| users | Display all users for selected configuration |
+| help | Show help menu |
+| exit | Exit the script |
