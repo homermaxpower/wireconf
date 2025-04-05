@@ -31,28 +31,63 @@ HELP_TEXT=$(cat << 'EOF'
 EOF
 )
 
+# Get system distribution
+if [ -f /etc/os-release ]; then
+    DISTRO=$(grep -w ID /etc/os-release | cut -d= -f2)
+    echo "$DISTRO"
+else
+    echo "Distribution cannot be identified"
+    exit 1
+fi
+
+# Detect if root or normal user
+if [ "$(id -u)" -ne 0 ]; then
+    ROOT_USER=false
+else
+    ROOT_USER=true
+fi
+
 # Installations for different distros
 install_debian() {
     echo "Installing WireGuard"
-    apt-get update
-    apt-get install -y wireguard resolvconf
+    if [ "$ROOT_USER" = false ]; then
+        sudo apt-get update
+        sudo apt-get install -y wireguard resolvconf
+    else
+        apt-get update
+        apt-get install -y wireguard resolvconf
+    fi
 }
 
 install_centos() {
     echo "Installing WireGuard"
-    yum update -y
-    yum install -y wireguard-tools resolvconf
+    if [ "$ROOT_USER" = false ]; then
+        sudo yum update -y
+        sudo yum install -y wireguard-tools resolvconf
+    else
+        yum update -y
+        yum install -y wireguard-tools resolvconf
+    fi
 }
 
 install_fedora() {
     echo "Installing WireGuard"
-    dnf update -y
-    dnf install -y wireguard-tools resolvconf
+    if [ "$ROOT_USER" = false ]; then
+        sudo dnf update -y
+        sudo dnf install -y wireguard-tools resolvconf
+    else
+        dnf update -y
+        dnf install -y wireguard-tools resolvconf
+    fi
 }
 
 install_arch() {
     echo "Installing WireGuard"
-    pacman -Sy --noconfirm wireguard-tools resolvconf
+    if [ "$ROOT_USER" = false ]; then
+        sudo pacman -Sy --noconfirm wireguard-tools resolvconf
+    else
+        pacman -Sy --noconfirm wireguard-tools resolvconf
+    fi
 }
 
 # Install WireGuard based on the distribution
@@ -81,8 +116,10 @@ install_wireguard() {
 }
 
 delete_wireguard() {
-    echo "Are you sure you want to delete WireGuard? This action cannot be undone. Type 'yes' to confirm."
-    read -p "Type 'yes' to confirm: " confirm
+    echo "Are you sure you want to delete WireGuard? This action cannot be undone."
+    printf "Type 'yes' to confirm: "
+    # shellcheck disable=SC2162
+    read confirm
     if [ "$confirm" != "yes" ]; then
         echo "Operation cancelled."
         return 1
@@ -90,19 +127,38 @@ delete_wireguard() {
     echo "Removing WireGuard"
     case "$DISTRO" in
         "debian" | "ubuntu")
-            apt-get purge -y wireguard resolvconf
-            apt-get autoremove -y
+            if [ "$ROOT_USER" = false ]; then
+                sudo apt-get purge -y wireguard resolvconf
+                sudo apt-get autoremove -y
+            else
+                apt-get purge -y wireguard resolvconf
+                apt-get autoremove -y
+            fi
             ;;
         "centos")
-            yum remove -y wireguard-tools resolvconf
-            yum autoremove -y
+            if [ "$ROOT_USER" = false ]; then
+                sudo yum remove -y wireguard-tools resolvconf
+                sudo yum autoremove -y
+            else
+                yum remove -y wireguard-tools resolvconf
+                yum autoremove -y
+            fi
             ;;
         "fedora")
-            dnf remove -y wireguard-tools resolvconf
-            dnf autoremove -y
+            if [ "$ROOT_USER" = false ]; then
+                sudo dnf remove -y wireguard-tools resolvconf
+                sudo dnf autoremove -y
+            else
+                dnf remove -y wireguard-tools resolvconf
+                dnf autoremove -y
+            fi
             ;;
         "arch")
-            pacman -Rns --noconfirm wireguard-tools resolvconf
+            if [ "$ROOT_USER" = false ]; then
+                sudo pacman -Rns --noconfirm wireguard-tools resolvconf
+            else
+                pacman -Rns --noconfirm wireguard-tools resolvconf
+            fi
             ;;
         *)
             echo "Unsupported distribution: $DISTRO"
@@ -114,15 +170,6 @@ delete_wireguard() {
 user_input=""
 
 printf "%s" "$MENU_TEXT"
-
-# Get system distribution
-if [ -f /etc/os-release ]; then
-    DISTRO=$(grep -w ID /etc/os-release | cut -d= -f2)
-    echo "$DISTRO"
-else
-    echo "Distribution cannot be identified"
-    exit 1
-fi
 
 # Main loop
 while [ "$user_input" != "exit" ]; do
