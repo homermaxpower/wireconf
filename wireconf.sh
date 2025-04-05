@@ -22,9 +22,9 @@ EOF
 # Help Menu Text
 HELP_TEXT=$(cat << 'EOF'
 
- Command:    Description:
+ COMMAND:    DESCRIPTION:
  install     Install WireGuard
- delete      Delete WireGuard
+ uninstall   Uninstall WireGuard
  help        Show this help menu
  exit        Exit the script
 
@@ -34,7 +34,6 @@ EOF
 # Get system distribution
 if [ -f /etc/os-release ]; then
     DISTRO=$(grep -w ID /etc/os-release | cut -d= -f2)
-    echo "$DISTRO"
 else
     echo "Distribution cannot be identified"
     exit 1
@@ -47,66 +46,43 @@ else
     ROOT_USER=true
 fi
 
-# Installations for different distros
-install_debian() {
-    echo "Installing WireGuard"
-    if [ "$ROOT_USER" = false ]; then
-        sudo apt-get update
-        sudo apt-get install -y wireguard resolvconf
-    else
-        apt-get update
-        apt-get install -y wireguard resolvconf
-    fi
-}
-
-install_centos() {
-    echo "Installing WireGuard"
-    if [ "$ROOT_USER" = false ]; then
-        sudo yum update -y
-        sudo yum install -y wireguard-tools resolvconf
-    else
-        yum update -y
-        yum install -y wireguard-tools resolvconf
-    fi
-}
-
-install_fedora() {
-    echo "Installing WireGuard"
-    if [ "$ROOT_USER" = false ]; then
-        sudo dnf update -y
-        sudo dnf install -y wireguard-tools resolvconf
-    else
-        dnf update -y
-        dnf install -y wireguard-tools resolvconf
-    fi
-}
-
-install_arch() {
-    echo "Installing WireGuard"
-    if [ "$ROOT_USER" = false ]; then
-        sudo pacman -Sy --noconfirm wireguard-tools resolvconf
-    else
-        pacman -Sy --noconfirm wireguard-tools resolvconf
-    fi
-}
-
 # Install WireGuard based on the distribution
 install_wireguard() {
+    echo "Installing WireGuard packages for $DISTRO"
     case "$DISTRO" in
-        "debian")
-            install_debian
-            ;;
-        "ubuntu")
-            install_debian
+        "debian" | "ubuntu")
+            if [ "$ROOT_USER" = false ]; then
+                sudo apt-get update
+                sudo apt-get install -y wireguard resolvconf
+            else
+                apt-get update
+                apt-get install -y wireguard resolvconf
+            fi
             ;;
         "centos")
-            install_centos
+            if [ "$ROOT_USER" = false ]; then
+                sudo yum update -y
+                sudo yum install -y wireguard-tools resolvconf
+            else
+                yum update -y
+                yum install -y wireguard-tools resolvconf
+            fi
             ;;
         "fedora")
-            install_fedora
+            if [ "$ROOT_USER" = false ]; then
+                sudo dnf update -y
+                sudo dnf install -y wireguard-tools resolvconf
+            else
+                dnf update -y
+                dnf install -y wireguard-tools resolvconf
+            fi
             ;;
         "arch")
-            install_arch
+            if [ "$ROOT_USER" = false ]; then
+                sudo pacman -Sy --noconfirm wireguard-tools resolvconf
+            else
+                pacman -Sy --noconfirm wireguard-tools resolvconf
+            fi
             ;;
         *)
             echo "Unsupported distribution: $DISTRO"
@@ -115,8 +91,8 @@ install_wireguard() {
     esac
 }
 
-delete_wireguard() {
-    echo "Are you sure you want to delete WireGuard? This action cannot be undone."
+uninstall_wireguard() {
+    echo "Are you sure you want to uninstall WireGuard? This action cannot be undone."
     printf "Type 'yes' to confirm: "
     # shellcheck disable=SC2162
     read confirm
@@ -124,7 +100,7 @@ delete_wireguard() {
         echo "Operation cancelled."
         return 1
     fi
-    echo "Removing WireGuard"
+    echo "Uninstalling WireGuard packages"
     case "$DISTRO" in
         "debian" | "ubuntu")
             if [ "$ROOT_USER" = false ]; then
@@ -167,9 +143,29 @@ delete_wireguard() {
     esac
 }
 
+# Check if WireGuard is installed
+check_wireguard_installed() {
+    if [ -f /usr/bin/wg ]; then
+        return 0
+    elif [ -f /bin/wg ]; then
+        return 0
+    else
+        return 1
+    fi
+}
+
+# Create WireGuard configuration
+create_wireguard_config() {
+    if ! check_wireguard_installed; then
+        echo "WireGuard is not installed"
+        install_wireguard
+    fi
+}
+
 user_input=""
 
-printf "%s" "$MENU_TEXT"
+echo "$MENU_TEXT"
+printf "\n"
 
 # Main loop
 while [ "$user_input" != "exit" ]; do
@@ -181,18 +177,24 @@ while [ "$user_input" != "exit" ]; do
         "install")
             install_wireguard
             ;;
-        "delete")
-            delete_wireguard
+        "uninstall")
+            uninstall_wireguard
+            ;;
+        "create")
+            create_wireguard_config
             ;;
         "help")
             echo "$HELP_TEXT"
+            printf "\n"
             ;;
         "exit")
             echo "Goodbye!"
+            printf "\n"
             exit 0
             ;;
         *)
             echo "Unknown command. Type 'help' for available commands."
+            printf "\n"
             ;;
     esac
 done
