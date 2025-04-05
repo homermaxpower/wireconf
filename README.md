@@ -1,5 +1,7 @@
 # WireConf
-WireGuard CLI configuration tool
+WireGuard CLI configuration tool / Shell script
+
+Script manages **installation/uninstallation** of wireguard and resolvconf packages; Creation, modification and deletion of **WireGuard configuration files**;  Creation, modification and deletion of **users** belonging to specific WireGuard configurations;
 
 ## Licence
 GNU GENERAL PUBLIC LICENSE version 2
@@ -19,13 +21,14 @@ git clone https://github.com/homermaxpower/wireconf.git && ./wireconf/wireconf.s
 ```
 
 ### Commands
-| **Command** | **Description** |
-| install | Install WireGuard |
-| uninstall | Uninstall WireGuard |
-| create | Create new WireGuard configuration |
-| delete | Select and delete WireGuard configuration |
-| list | List WireGuard configurations |
-| user | Create/Modify/Delete a user for selected configuration |
-| users | Display all users for selected configuration |
-| help | Show help menu |
-| exit | Exit the script |
+**Command** | **Description**
+--------|------------
+install | Install WireGuard
+uninstall | Uninstall WireGuard
+create | Create new WireGuard configuration
+delete | Select and delete WireGuard configuration
+list | List WireGuard configurations
+user | Create/Modify/Delete a user for selected configuration
+users | Display all users for selected configuration
+help | Show help menu
+exit | Exit the script
