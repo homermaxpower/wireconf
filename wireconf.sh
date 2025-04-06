@@ -154,12 +154,102 @@ check_wireguard_installed() {
     fi
 }
 
+create_wireguard_server_config() {
+    echo "Creating a WireGuard server configuration..."
+    
+    # Detect a public IP address and ask to confirm or change it
+    echo "Detecting your public IP address..."
+    PUBLIC_IP=$(curl -4 -sSL ifconfig.me)
+    echo "Your public IP address is [$PUBLIC_IP]: "
+    # shellcheck disable=SC2162
+    read user_input
+    if [ "$user_input" != "" ]; then
+        PUBLIC_IP=$user_input
+    fi
+    
+    # Selecting a port for the WireGuard server (default: 51820)
+    SERVER_PORT=51820
+    echo "WireGuard server port [51820]: "
+    # shellcheck disable=SC2162
+    read user_input
+    if [ "$user_input" != "" ]; then
+        SERVER_PORT=$user_input
+    fi
+    
+    # Selecting a DNS server for the WireGuard server with options
+    RIGHT_CHOICE=true
+    while [ "$RIGHT_CHOICE" = false ]; do
+        echo "Select a DNS server for the WireGuard server [1. System default]: "
+        echo "1. System default"
+        printf "\n"
+        echo "2. Cloudflare"
+        printf "\n"
+        echo "3. Quad9"
+        printf "\n"
+        echo "4. AdGuard"
+        printf "\n"
+        echo "5. Custom"
+        printf "\n"
+        echo "> "
+        # shellcheck disable=SC2162
+        read user_input
+        case "$user_input" in
+            "1" | "")
+                DNS_SERVER=$(cat /etc/resolv.conf | grep -E -o "([0-9]{1,3}\.){3}[0-9]{1,3}" | head -n 1)
+                ;;
+            "2")
+                DNS_SERVER="1.0.0.1"
+                ;;
+            "3")
+                DNS_SERVER="9.9.9.9"
+                ;;
+            "4")
+                DNS_SERVER="176.103.130.130"
+                ;;
+            "5")
+                printf "\nEnter a custom DNS server: "
+                # shellcheck disable=SC2162
+                read user_input
+                DNS_SERVER=$user_input
+                ;;
+            *)
+                echo "Invalid option"
+                RIGHT_CHOICE=false
+                ;;
+        esac
+    done
+}
+
+create_wireguard_peer_config() {
+    echo "Creating a WireGuard peer to peer configuration..."
+}
+
 # Create WireGuard configuration
 create_wireguard_config() {
     if ! check_wireguard_installed; then
         echo "WireGuard is not installed"
         install_wireguard
     fi
+    
+    # Select a type of WireGuard configuration
+    echo "Select a type of WireGuard configuration:"
+    printf "\n"
+    echo "1. Server"
+    printf "\n"
+    echo "2. Peer to Peer"
+    printf "\n"
+    echo "3. Exit"
+    printf "\n"
+    # shellcheck disable=SC2162
+    read user_input
+    case "$user_input" in
+        "1")
+            create_wireguard_server_config
+            ;;
+        "2")
+            create_wireguard_peer_config
+            ;;
+    esac
 }
 
 user_input=""
