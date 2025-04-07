@@ -1,7 +1,7 @@
 # WireConf
 WireGuard CLI configuration tool / Shell script
 
-Script manages **installation/uninstallation** of wireguard and resolvconf packages; Creation and deletion of **WireGuard configuration files**;  Creation and deletion of **users** belonging to specific WireGuard configurations of type server; Creating peer to peer WireGuard connections.
+Script manages: **installation/uninstallation** of neccessary packages; Creation and deletion of **WireGuard configuration files**;  Creation and deletion of **users** belonging to specific WireGuard configurations;
 
 Script uses package manager from each of the supported distributions to install packages.
 
@@ -20,7 +20,7 @@ GNU GENERAL PUBLIC LICENSE version 2
 ## Usage
 
 ### Running the script
-```bash
+```shell
 git clone https://github.com/homermaxpower/wireconf.git && ./wireconf/wireconf.sh
 ```
 
@@ -33,6 +33,18 @@ create | Create new WireGuard configuration
 delete | Select and delete WireGuard configuration
 list | List WireGuard configurations
 user | Create/Delete a user for selected configuration
+userqr | Generate and display QR code for client configuration
 users | Display all users for selected configuration
 help | Show help menu
 exit | Exit the script
+
+### Workaround for unsupported distributions
+**Workaround in the begginning of the script:**
+```shell
+# If running on unsupported distribution, set this to true and
+# uncomment the following line and set the DISTRO variable to distro closest to your distribution.
+# Also you can skip the install step by installing wireguard, resolvconf and qrencode manually
+# and the script will detect that the wg, resolvconf and qrencode commands are available
+UNSUPPORTED_DISTRO=false
+#DISTRO="debian"
+```
